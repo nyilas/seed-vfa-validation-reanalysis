@@ -1,0 +1,2 @@
+RMSE_floor,ci_lower_95,ci_upper_95,ci_level,n_bootstrap,n_groups_used,n_obs_used
+0.22877804514287195,0.1702756232438079,0.28337334828873845,0.95,10000,33,66

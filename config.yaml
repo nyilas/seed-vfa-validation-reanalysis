@@ -1,0 +1,67 @@
+# Seed/VFA validation-aware reanalysis — central configuration.
+#
+# Authoritative implementation plan: AGENTS.md.
+# This file is the single source of truth for paths, the global seed, and the
+# de-duplicated data contract. Code must read settings from here rather than
+# hardcoding them (rules/python_research.md §7.1, §9).
+
+# Global RNG seed. Every stochastic step must take this seed explicitly so that
+# re-runs reproduce identical results (AGENTS.md §1, invariant 5 "Determinism").
+# The data-audit layer is fully deterministic and does not consume it, but it is
+# defined here once for the downstream split/model layers.
+seed: 42
+
+paths:
+  raw_dataset: data/raw/Seed_Dataset.csv
+  processed_dir: data/processed
+  seed_clean: data/processed/seed_clean.csv
+  seed_with_groups: data/processed/seed_with_groups.csv
+  results_dir: results
+
+# Data contract (AGENTS.md §4). These are correctness invariants for the
+# *de-duplicated* dataset, not tunable parameters. run_data_audit.py fails loudly
+# if any of them is violated.
+data_contract:
+  raw_n_rows: 80          # rows in data/raw/Seed_Dataset.csv before de-duplication
+  n_exact_duplicates: 1   # known exact-duplicate row to remove (rows ~80-81)
+  n_rows: 79              # rows after de-duplication
+  n_conditions: 46        # distinct condition_id values
+  n_membranes: 4          # distinct membrane_id values
+  n_feed_types: 2         # distinct feed_type values
+  membrane_mwco: [225, 250, 300, 400]   # allowed MWCO [Da] values (membrane_id)
+  feed_types: [simple, complex]         # allowed feed_type values
+
+# Noise-floor bootstrap (AGENTS.md §5).
+# Resamples are drawn over *groups* (not rows) so the CI reflects
+# between-group variance in within-replicate variability.
+noise_floor:
+  n_bootstrap: 10000    # resampling iterations; ≥5000 for stable 95% CI
+  ci_level: 0.95        # two-sided confidence level
+  # Reasonableness bounds used by test_noise_floor.py (§11).
+  # These are wide guards: a value outside this range signals a formula bug,
+  # not a scientific finding.
+  floor_min: 0.1
+  floor_max: 0.4
+
+# Validation protocols (AGENTS.md §6).
+# A: single random 75/25 split — replicates source paper setting.
+# B: repeated ShuffleSplit — leakage audit + variance of the random estimate.
+# C: GroupKFold by condition_id — honest interpolation.
+# D: LeaveOneGroupOut by membrane_id — extrapolation to unseen domain.
+# E: LeaveOneGroupOut by feed_type — optional regime transfer (simple↔complex).
+splits:
+  test_size: 0.25         # fraction held out for A and B
+  n_shuffle_splits: 100   # B: number of repeated random splits (must be >= 100)
+  gkf_n_splits: 5         # C: GroupKFold folds (5 gives ~9 conditions held out)
+
+# Model hyperparameters (AGENTS.md §7).
+# These are diagnostic settings — modest, not competition-tuned.
+# Every stochastic parameter is controlled here so re-runs reproduce bit-for-bit
+# identical predictions (AGENTS.md §1, invariant 5).  Ridge alpha and tree counts
+# are not the subject of scientific inquiry; they are fixed reference points.
+models:
+  ridge_alpha: 1.0              # Ridge: standard L2 penalty; not tuned here
+  catboost_iterations: 500      # CatBoost: modest tree count for small dataset
+  catboost_depth: 4             # CatBoost: shallow trees to reduce overfitting
+  catboost_learning_rate: 0.1   # CatBoost: moderate shrinkage
+  random_forest_n_estimators: 300  # RF: enough trees for stable variable importance

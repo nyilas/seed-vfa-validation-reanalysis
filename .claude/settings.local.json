@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m venv .venv)",
+      "Bash(.venv/bin/python -m pip install --quiet --upgrade pip)",
+      "Bash(.venv/bin/python -m pip install --quiet pandas pyyaml pytest)",
+      "Bash(.venv/bin/python -c \"import pandas, yaml, pytest, numpy; print\\('pandas', pandas.__version__\\); print\\('numpy', numpy.__version__\\); print\\('ok'\\)\")",
+      "Bash(.venv/bin/python scripts/run_data_audit.py)",
+      "Bash(.venv/bin/python -m pytest tests/test_groups.py -q)"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seed-vfa-validation-reanalysis"
+version = "0.1.0"
+description = "Validation-aware reanalysis of the Seed/VFA dataset (AGENTS.md v1)."
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "scikit-learn",
+    "statsmodels",
+    "matplotlib",
+    "catboost",
+    "shap",
+    "joblib",
+    "tqdm",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "black"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Make the src/ layout importable without installation.
+pythonpath = ["src"]
+testpaths = ["tests"]
