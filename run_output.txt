@@ -1,0 +1,211 @@
+python scripts/run_protocol_sweep.py
+[1/6] Loading config, noise floor, and grouped dataset...
+      79 rows | RMSE_floor = 0.228778 | seed = 42
+[2/6] Generating protocol splits...
+      A: 1 split
+      B: 100 splits
+      C: 5 splits
+      D: 4 splits
+[3/6] Building leakage audit...
+      110 audit rows | 101 leakage warnings → leakage_audit.csv
+[4/6] Running protocol sweep (64 combinations, 1760 total fold evaluations)...
+  [ 1/64] A | dummy          | FS1  (1 fold)
+  [ 2/64] A | dummy          | FS2  (1 fold)
+  [ 3/64] A | dummy          | FS3  (1 fold)
+  [ 4/64] A | dummy          | FS5  (1 fold)
+  [ 5/64] A | ridge          | FS1  (1 fold)
+  [ 6/64] A | ridge          | FS2  (1 fold)
+  [ 7/64] A | ridge          | FS3  (1 fold)
+  [ 8/64] A | ridge          | FS5  (1 fold)
+  [ 9/64] A | catboost       | FS1  (1 fold)
+  [10/64] A | catboost       | FS2  (1 fold)
+  [11/64] A | catboost       | FS3  (1 fold)
+  [12/64] A | catboost       | FS5  (1 fold)
+  [13/64] A | random_forest  | FS1  (1 fold)
+  [14/64] A | random_forest  | FS2  (1 fold)
+  [15/64] A | random_forest  | FS3  (1 fold)
+  [16/64] A | random_forest  | FS5  (1 fold)
+  [17/64] B | dummy          | FS1  (100 folds)
+  [18/64] B | dummy          | FS2  (100 folds)
+  [19/64] B | dummy          | FS3  (100 folds)
+  [20/64] B | dummy          | FS5  (100 folds)
+  [21/64] B | ridge          | FS1  (100 folds)
+  [22/64] B | ridge          | FS2  (100 folds)
+  [23/64] B | ridge          | FS3  (100 folds)
+  [24/64] B | ridge          | FS5  (100 folds)
+  [25/64] B | catboost       | FS1  (100 folds)
+  [26/64] B | catboost       | FS2  (100 folds)
+  [27/64] B | catboost       | FS3  (100 folds)
+  [28/64] B | catboost       | FS5  (100 folds)
+  [29/64] B | random_forest  | FS1  (100 folds)
+  [30/64] B | random_forest  | FS2  (100 folds)
+  [31/64] B | random_forest  | FS3  (100 folds)
+  [32/64] B | random_forest  | FS5  (100 folds)
+  [33/64] C | dummy          | FS1  (5 folds)
+  [34/64] C | dummy          | FS2  (5 folds)
+  [35/64] C | dummy          | FS3  (5 folds)
+  [36/64] C | dummy          | FS5  (5 folds)
+  [37/64] C | ridge          | FS1  (5 folds)
+  [38/64] C | ridge          | FS2  (5 folds)
+  [39/64] C | ridge          | FS3  (5 folds)
+  [40/64] C | ridge          | FS5  (5 folds)
+  [41/64] C | catboost       | FS1  (5 folds)
+  [42/64] C | catboost       | FS2  (5 folds)
+  [43/64] C | catboost       | FS3  (5 folds)
+  [44/64] C | catboost       | FS5  (5 folds)
+  [45/64] C | random_forest  | FS1  (5 folds)
+  [46/64] C | random_forest  | FS2  (5 folds)
+  [47/64] C | random_forest  | FS3  (5 folds)
+  [48/64] C | random_forest  | FS5  (5 folds)
+  [49/64] D | dummy          | FS1  (4 folds)
+  [50/64] D | dummy          | FS2  (4 folds)
+  [51/64] D | dummy          | FS3  (4 folds)
+  [52/64] D | dummy          | FS5  (4 folds)
+  [53/64] D | ridge          | FS1  (4 folds)
+  [54/64] D | ridge          | FS2  (4 folds)
+  [55/64] D | ridge          | FS3  (4 folds)
+  [56/64] D | ridge          | FS5  (4 folds)
+  [57/64] D | catboost       | FS1  (4 folds)
+  [58/64] D | catboost       | FS2  (4 folds)
+  [59/64] D | catboost       | FS3  (4 folds)
+  [60/64] D | catboost       | FS5  (4 folds)
+  [61/64] D | random_forest  | FS1  (4 folds)
+  [62/64] D | random_forest  | FS2  (4 folds)
+  [63/64] D | random_forest  | FS3  (4 folds)
+  [64/64] D | random_forest  | FS5  (4 folds)
+[5/6] Saving outputs...
+      34,848 prediction rows → all_predictions.csv
+      64 metric rows → model_metrics.csv
+[6/6] Sweep complete.
+
+  Ridge + FS2  (Demo 1 reference)
+  Proto  RMSE_mean ±RMSE_std  R2_mean  flag
+  ------------------------------------------------
+  A         0.5738    0.0000   0.5279
+  B         0.4629    0.0693   0.5548
+  C         0.4559    0.0611   0.5489
+  D         0.6546    0.4169  -0.2151
+  noise floor    0.2288
+
+  Leakage gap     RMSE(C) − RMSE(B)  = -0.0071
+  Extrapolation   RMSE(D) − RMSE(C)  = +0.1988
+
+
+
+
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+
+
+
+
+
+  python scripts/run_identifiability.py
+[1/6] Loading config and grouped dataset...
+      79 rows | seed = 42
+[2/6] Generating Protocol C splits...
+      5 folds (GroupKFold by condition_id)
+[3/6] Computing importances: 3 feature sets × 4 methods × 5 folds...
+  [ 1/12] FS2 | standardized_coef     (5 folds)
+  [ 2/12] FS2 | permutation           (5 folds)
+  [ 3/12] FS2 | shap                  (5 folds)
+  [ 4/12] FS2 | gpr_ard               (5 folds)
+  [ 5/12] FS6 | standardized_coef     (5 folds)
+  [ 6/12] FS6 | permutation           (5 folds)
+  [ 7/12] FS6 | shap                  (5 folds)
+  [ 8/12] FS6 | gpr_ard               (5 folds)
+  [ 9/12] FS2_NO_PH | standardized_coef     (5 folds)
+  [10/12] FS2_NO_PH | permutation           (5 folds)
+  [11/12] FS2_NO_PH | shap                  (5 folds)
+  [12/12] FS2_NO_PH | gpr_ard               (5 folds)
+[4/6] Computing pairwise Kendall τ across methods...
+[5/6] Saving importance_stability.csv...
+      52 rows → importance_stability.csv
+[6/6] Experiment complete.
+
+  pH / ζ importance migration (normalized mean, rank)
+  Method                  FS2 pH    FS2 ζ    FS6 pH   FS2NP ζ
+  ----------------------------------------------------------------
+  standardized_coef       0.3200#1.0    0.2206#2.4    0.5512#1.0    0.4924#1.0
+  permutation             0.4350#1.2    0.2059#2.4    0.7829#1.0    0.6361#1.0
+  shap                    0.4088#1.0    0.1935#2.4    0.5103#1.0    0.4336#1.0
+  gpr_ard                 0.4305#1.2    0.1763#2.6    0.5426#1.0    0.8690#1.0
+
+  Kendall τ (mean pairwise, FS2 only)
+    standardized_coef     : τ = +0.6667
+    permutation           : τ = +0.6667
+    shap                  : τ = +0.4000
+    gpr_ard               : τ = +0.5333
+
+
+
+
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+
+
+
+
+    python scripts/run_effective_sfr.py
+[1/4] Loading config and grouped dataset...
+      79 rows loaded | seed = 42
+[2/4] Computing dataset summary...
+
+  Dataset summary
+  -----------------------------------------------
+  Nominal rows (pre-dedup)      : 80
+  Distinct rows (post-dedup)    : 79
+  Duplicate rows removed        : 1
+  Distinct conditions           : 46
+  Membrane domains (MWCO)       : 4
+[3/4] Computing SFR table for 7 feature sets...
+[4/4] Saved 7 rows → effective_sfr.csv
+
+  FS          p   nom_sfr   eff_sfr(cond)  eff_sfr(dom)
+  --------------------------------------------------------
+  FS1        14      5.64            3.29 *          0.29 **
+  FS2         5     15.80            9.20            0.80 **
+  FS3         4     19.75           11.50            1.00
+  FS4         7     11.29            6.57            0.57 **
+  FS5         4     19.75           11.50            1.00
+  FS6         4     19.75           11.50            1.00
+  FS7         8      9.88            5.75            0.50 **
+
+  * effective_sfr_condition < 5  (rule-of-thumb low for regression)
+  ** effective_sfr_domain < 1    (severely underdetermined at domain level)
+
+
+
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------
+
+
+
+
+  python scripts/make_figures.py
+[1/3] Loading result CSVs...
+      Loading all_predictions.csv (this may take a moment)...
+      Trivial RMSE (dummy, B): 0.7283
+      Noise floor:             0.2288
+      Unique observations:     79
+[2/3] Generating figures 1–6...
+  Fig. 1 — noise floor...
+  Fig. 2 — dataset audit...
+  Fig. 3 — protocol sweep RMSE...
+  Fig. 4 — extrapolation contrast...
+  Fig. 5 — importance migration...
+  Fig. 6 — effective SFR...
+[3/3] All figures saved.
+
+  PNG (inspection): /home/antele/Work/Dottorato/Projects/VFAs/results/figures/
+  PDF (paper):      /home/antele/Work/Dottorato/Projects/VFAs/paper/figures/
+
+  fig1_noise_floor: PNG ✓  PDF ✓
+  fig2_dataset_audit: PNG ✓  PDF ✓
+  fig3_protocol_sweep: PNG ✓  PDF ✓
+  fig4_extrapolation: PNG ✓  PDF ✓
+  fig5_importance: PNG ✓  PDF ✓
+  fig6_effective_sfr: PNG ✓  PDF ✓
