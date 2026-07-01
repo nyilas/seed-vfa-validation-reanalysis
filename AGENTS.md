@@ -47,6 +47,24 @@ the test suite (§10) enforces them. A violation is a bug even if results "look 
 8. **Two reference lines on every performance figure:** trivial-model RMSE (≈0.72) and replicate
    noise floor (≈0.23, recomputed exactly in F1).
 
+### Figure conventions (enforced)
+
+All figures go through `src/seed_vfa/plotting.py`, which is the **single source of truth** for
+style. Scripts call `apply_style()` once at startup and must not set `plt.rcParams` or
+`plt.style.use` locally.
+
+* **Format**: PDF (vector, primary deliverable) + PNG (300 dpi preview).  Both written to
+  `results/figures/`; PDF also copied to `paper/figures/`.
+* **Venue bundle**: `tueplots.bundles.tmlr2023` — TMLR text width 6.5 in (469.755 pt).
+  Exposed as `WIDTH_FULL = 6.5` and `WIDTH_HALF = 3.25` in `plotting.py`.
+* **LaTeX fonts**: pdflatex/pgf path; falls back to mathtext with an explicit warning.
+* **Palette**: Okabe–Ito with a fixed semantic mapping (`MODEL_COLORS`, `PROTOCOL_COLORS`,
+  `MEMBRANE_COLORS`) so each entity has the same colour across all figures.
+* **Titles**: none on axes (`set_title`/`suptitle` forbidden). Descriptions go in the LaTeX
+  caption.
+* **Reference lines**: every performance figure uses `REF_TRIVIAL` and `REF_NOISE_FLOOR` kwargs
+  from `plotting.py` — consistent style, never overridden per figure.
+
 ---
 
 ## 2. Environment
@@ -55,11 +73,20 @@ the test suite (§10) enforces them. A violation is a bug even if results "look 
 python>=3.11
 numpy, pandas, scipy, scikit-learn, statsmodels
 matplotlib            # final figures (no seaborn for final figs)
+tueplots              # venue figure sizes + bundles (tmlr2023)
 catboost              # reference model only
 shap                  # Demo 2, optional method
 joblib, tqdm, pyyaml
 pytest, ruff, black
 ```
+
+System LaTeX toolchain (required for embedded fonts in PDFs):
+```
+texlive-latex-base  texlive-latex-extra  texlive-fonts-recommended
+cm-super  dvipng  ghostscript
+```
+Without pdflatex, `apply_style()` falls back to mathtext (Computer Modern) and
+emits a `logging.warning` — figures render but fonts will not match the manuscript.
 
 GPR uses `sklearn.gaussian_process` (RBF/Matern + WhiteKernel + ARD) **only** as a probe in Demo 2
 (its ARD length-scales are shown to be fooled by aliasing). It is not a contribution.
@@ -241,3 +268,9 @@ All tests green; `model_metrics.csv` complete for {A,B,C,D}; Figures 1–6 in `p
 `noise_floor.csv` with the published-numbers sidebar; `seed_with_groups.csv` released with a data
 card (license check noted). No active-learning / synthetic / GPR-uncertainty code present. README
 documents how to reproduce every figure from raw data with one command per figure.
+
+## Validation gate
+After every run, validate outputs against `EXPECTED_RESULTS.md`.
+RED violations (structural) block progress and must be fixed before continuing.
+AMBER (predictive out of range) must be investigated and explained, not ignored.
+Run `python scripts/check_expected.py` and ensure it exits 0 before marking a phase done.

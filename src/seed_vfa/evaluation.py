@@ -31,6 +31,7 @@ Model metrics (``model_metrics.csv``)::
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -320,3 +321,111 @@ def metrics_to_record(agg: AggregatedMetrics) -> dict[str, object]:
         "n_domains_test": agg.n_domains_test,
         "below_floor": agg.below_floor,
     }
+
+
+# ---------------------------------------------------------------------------
+# Protocol-D per-membrane breakdown
+# ---------------------------------------------------------------------------
+
+TABLE_D_COLUMNS: tuple[str, ...] = (
+    "model",
+    "feature_set",
+    "held_out_membrane",
+    "n",
+    "y_min",
+    "y_max",
+    "RMSE",
+    "MAE",
+    "R2",
+    "bias",
+)
+
+
+def compute_lomo_per_membrane(preds_df: pd.DataFrame) -> pd.DataFrame:
+    """Compute per-held-out-membrane metrics from protocol-D (LOMO) predictions.
+
+    In leave-one-membrane-out, each fold's test set contains exactly one
+    membrane type.  This function groups test-only predictions by
+    ``(model, feature_set, membrane_id)`` and pools all rows for that
+    held-out membrane before computing metrics.
+
+    R² is computed on pooled predictions per group, not averaged over folds
+    (EXPECTED_RESULTS.md §9: fold-averaged R² is fragile for protocol D).
+
+    ``bias = mean(y_true − y_pred)``: positive means the model
+    systematically under-predicts that membrane.
+
+    Parameters
+    ----------
+    preds_df:
+        All-predictions DataFrame (``all_predictions.csv`` schema).
+        Rows with ``protocol != "D"`` are silently dropped before processing.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Schema: :data:`TABLE_D_COLUMNS`.  ``membrane_id`` is reported as
+        ``held_out_membrane``.
+
+    Raises
+    ------
+    ValueError
+        If any ``(model, feature_set, membrane_id)`` triple spans more than
+        one fold.  This would indicate LOMO is not isolating held-out membranes.
+    ValueError
+        If no protocol-D rows are found.
+    """
+    d = preds_df[preds_df["protocol"] == "D"].copy()
+    if d.empty:
+        raise ValueError("No protocol-D rows found in the predictions DataFrame.")
+
+    # Assert: each (model, feature_set, membrane_id) must come from exactly one fold.
+    fold_counts = (
+        d.groupby(["model", "feature_set", MEMBRANE_ID])["fold"]
+        .nunique()
+    )
+    bad = fold_counts[fold_counts > 1]
+    if not bad.empty:
+        raise ValueError(
+            "Some (model, feature_set, membrane_id) groups span multiple folds. "
+            "LOMO is not properly isolating held-out membranes:\n" + str(bad)
+        )
+
+    rows: list[dict] = []
+    for (model, fs, mem), grp in d.groupby(["model", "feature_set", MEMBRANE_ID]):
+        y_true = grp["y_true"].to_numpy(dtype=float)
+        y_pred = grp["y_pred"].to_numpy(dtype=float)
+        n = len(grp)
+
+        ss_res = float(np.sum((y_true - y_pred) ** 2))
+        ss_tot = float(np.sum((y_true - y_true.mean()) ** 2))
+
+        rmse = float(np.sqrt(ss_res / n))
+        mae = float(np.mean(np.abs(y_true - y_pred)))
+        bias = float(np.mean(y_true - y_pred))
+
+        if ss_tot == 0.0:
+            warnings.warn(
+                f"SS_tot = 0 for (model={model!r}, feature_set={fs!r}, "
+                f"membrane_id={mem}): all y_true are identical; R2 set to NaN.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            r2 = float("nan")
+        else:
+            r2 = float(1.0 - ss_res / ss_tot)
+
+        rows.append({
+            "model": model,
+            "feature_set": fs,
+            "held_out_membrane": int(mem),
+            "n": n,
+            "y_min": float(y_true.min()),
+            "y_max": float(y_true.max()),
+            "RMSE": rmse,
+            "MAE": mae,
+            "R2": r2,
+            "bias": bias,
+        })
+
+    return pd.DataFrame(rows, columns=list(TABLE_D_COLUMNS))
